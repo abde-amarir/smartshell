@@ -93,7 +93,10 @@ def normalize(command: str) -> Optional[str]:
     # Keep first two tokens for known multi-token commands
     # e.g. "git commit -m ..." → "git commit"
     if base in KEEP_ARGS and len(tokens) > 1:
-        return f"{tokens[0]} {tokens[1]}"
+        second = tokens[1]
+        if second.startswith("-"):
+            return base
+        return f"{base} {second}"
     
     # Default — keep just the base command
     return base
