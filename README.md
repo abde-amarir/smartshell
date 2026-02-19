@@ -120,9 +120,9 @@ smartshell/
 ## Roadmap
 
 - [x] Phase 0 — Project structure and environment setup
-- [ ] Phase 1 — Shell logger + SQLite collector
-- [ ] Phase 2 — Data processing pipeline and normalization
-- [ ] Phase 3 — Markov Chain model (baseline)
+- [x] Phase 1 — Shell logger + SQLite collector
+- [x] Phase 2 — Data processing pipeline and normalization
+- [x] Phase 3 — Markov Chain model (baseline)
 - [ ] Phase 4 — CLI suggestion engine with `prompt_toolkit`
 - [ ] Phase 5 — scikit-learn classifier (Logistic Regression + Random Forest)
 - [ ] Phase 6 — LSTM sequence model with PyTorch
