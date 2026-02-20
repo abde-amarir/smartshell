@@ -115,16 +115,18 @@ class MarkovPredictor:
 
     # ── Persistence ───────────────────────────────────────────────────────────
 
-    def save(self, path: Path = MODEL_PATH) -> None:
-        """Save the trained model to disk."""
+    def save(self, path: Path = None) -> None:
+        if path is None:
+            path = MODEL_PATH.parent / f"markov_model_order{self.order}.pkl"
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "wb") as f:
             pickle.dump(self, f)
         print(f"Model saved → {path}")
 
     @classmethod
-    def load(cls, path: Path = MODEL_PATH) -> "MarkovPredictor":
-        """Load a saved model from disk."""
+    def load(cls, path: Path = None, order: int = 1) -> "MarkovPredictor":
+        if path is None:
+            path = MODEL_PATH.parent / f"markov_model_order{order}.pkl"
         with open(path, "rb") as f:
             model = pickle.load(f)
         print(f"Model loaded ← {path}")
@@ -161,3 +163,35 @@ class MarkovPredictor:
             total = sum(targets.values())
             prob = targets[top_target] / total
             print(f"  {' → '.join(context)} → {top_target}  ({prob:.0%}, seen {total}x)")
+
+    def top_global_commands(self, top_n: int = 3) -> list[dict]:
+        """
+        Return the most frequently seen commands across all transitions.
+        Used as a last-resort fallback when no context match is found.
+        """
+        counts: dict = {}
+        for targets in self.transitions.values():
+            for cmd, count in targets.items():
+                counts[cmd] = counts.get(cmd, 0) + count
+
+        ranked = sorted(counts.items(), key=lambda x: x[1], reverse=True)[:top_n] 
+        total = sum(counts.values())
+
+        return [
+            {"command": cmd, "probability": round(count / total, 3)}
+            for cmd, count in ranked
+        ]
+
+    def predict_with_backoff(self, last_commands, top_n=3):
+        # Try highest order 
+        if self.order == 2 and len(last_commands) >= 2:
+            res = self.predict((last_commands[-2], last_commands[-1]), top_n)
+            if res:
+                return res
+        # Fallback to order=1
+        if len(last_commands) >= 1:
+            res = self.predict((last_commands[-1],), top_n)
+            if res:
+                return res
+        # Fallback to global top commands
+        return self.top_global_commands(top_n)

@@ -94,7 +94,8 @@ def normalize(command: str) -> Optional[str]:
     # e.g. "git commit -m ..." → "git commit"
     if base in KEEP_ARGS and len(tokens) > 1:
         second = tokens[1]
-        if second.startswith("-"):
+        # ignore pure flags or heredoc markers
+        if second.startswith("-") or second == "-" or second.startswith("<<"):
             return base
         return f"{base} {second}"
     
