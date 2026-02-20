@@ -62,13 +62,13 @@ def get_prediction(session_id: str = None) -> dict | None:
     if not DB_PATH.exists():
         return None
 
-    model = MarkovPredictor.load(MODEL_PATH)
+    model = MarkovPredictor.load(order=1)
     last_commands = get_last_commands(n=model.order, session_id=session_id)
 
     if not last_commands:
         return None
 
-    results = model.predict_from_last(last_commands)
+    results = model.predict_with_backoff(last_commands)
 
     if not results:
         return None
