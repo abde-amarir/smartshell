@@ -1,6 +1,6 @@
 import sqlite3
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 # ── Config ──────────────────────────────────────────────────────────────────────
@@ -19,7 +19,7 @@ def init_db():
                    id               INTEGER PRIMARY KEY AUTOINCREMENT,
                    command          TEXT        NOT NULL,
                    directory        TEXT        NOT NULL,
-                   exit_code       INTEGER     NOT NULL,
+                   exit_code        INTEGER     NOT NULL,
                    timestamp        TEXT        NOT NULL,
                    hour             INTEGER     NOT NULL,
                    day_of_week      INTEGER     NOT NULL,
@@ -50,11 +50,15 @@ def log_command(command: str, directory: str, exit_code: int, session_id: str):
         "rm", "dd", "mkfs", "shutdown", "reboot",
         "poweroff", "halt", "mkswap", "fdisk", "parted"
     }
-    base_command = command.strip().split()[0].lstrip("sudo").strip()
-    if base_command in BLACKLIST:
-        return
+
     
-    now = datetime.now()
+    parts = command.strip().split()
+    base_command = parts[0]
+    if base_command == "sudo" and len(parts) > 1:
+        base_command = parts[1]
+    
+    
+    now = datetime.now(timezone.utc)
 
     conn = sqlite3.connect(DP_PATH)
     cursor = conn.cursor()

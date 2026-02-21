@@ -47,6 +47,16 @@ BLACKLIST = {
     "history", "clear", "exit", "logout",
 }
 
+def split_pipeline(command: str) -> list[str]:
+    return [c.strip() for c in command.split("|") if c.strip()]
+
+
+LOGICAL_OPERATORS = ["&&", "||", ";"]
+
+def split_logicial(command: str) -> list[dir]:
+    pattern = r"\s*(?:&&|\|\||;)\s*"
+    return re.split(pattern, command)
+
 
 def normalize(command: str) -> Optional[str]:
     """
@@ -69,7 +79,7 @@ def normalize(command: str) -> Optional[str]:
 
     # Remove leading shell decorators (time, env vars, etc.)
     # e.g. "FLASK_ENV=dev python3 app.py" → "python3 app.py"
-    command = re.sub(r'^[A-Z_]+=\S+\s', '', command)
+    re.sub(r'^([A-Z_]+=\S+\s)+', '', command)
 
     tokens = command.split()
     if not tokens:
@@ -99,6 +109,25 @@ def normalize(command: str) -> Optional[str]:
             return base
         return f"{base} {second}"
     
+    segments = split_pipeline(command)
+
+    if len(segments) > 1:
+        normalized_segments = []
+        for seg in segments:
+            n = normalize(seg)      # recursive normalization
+            if n:
+                normalized_segments.append(n)
+        return " | ".join(normalized_segments)
+    
+    segments = split_logicial(command)
+    if len(segments) > 1:
+        normalized = []
+        for seg in segments:
+            n = normalize(seg)
+            if n:
+                normalized.append(n)
+        return " ; ".join(normalized)
+    
     # Default — keep just the base command
     return base
 
@@ -113,4 +142,8 @@ def normalize_directory(directory: str) -> str:
         "/home/abdessamad"             → "home/abdessamad"
     """
     parts = [p for p in directory.strip("/").split("/") if p]
+    """
+    /home/amarir/projects/ml/smartshell
+    ml/smartshell
+    """
     return "/".join(parts[-2:]) if len(parts) >= 2 else directory

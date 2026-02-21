@@ -64,8 +64,6 @@ class MarkovPredictor:
             self.transitions[context][target] += 1
 
         self.trained = True
-        print(f"Markov model (order={self.order}) trained.")
-        print(f"  {len(self.transitions)} unique contexts learned.")
 
     # ── Prediction ────────────────────────────────────────────────────────────
 
@@ -121,7 +119,6 @@ class MarkovPredictor:
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "wb") as f:
             pickle.dump(self, f)
-        print(f"Model saved → {path}")
 
     @classmethod
     def load(cls, path: Path = None, order: int = 1) -> "MarkovPredictor":
@@ -129,7 +126,6 @@ class MarkovPredictor:
             path = MODEL_PATH.parent / f"markov_model_order{order}.pkl"
         with open(path, "rb") as f:
             model = pickle.load(f)
-        print(f"Model loaded ← {path}")
         return model
     
     # ── Inspection ────────────────────────────────────────────────────────────
@@ -184,14 +180,16 @@ class MarkovPredictor:
 
     def predict_with_backoff(self, last_commands, top_n=3):
         # Try highest order 
-        if self.order == 2 and len(last_commands) >= 2:
-            res = self.predict((last_commands[-2], last_commands[-1]), top_n)
-            if res:
-                return res
+        if self.order >= 2 and len(last_commands) >= 2:
+            context = tuple(last_commands[-2:])
+            if context in self.transitions:
+                return self.predict(context, top_n)
+
         # Fallback to order=1
         if len(last_commands) >= 1:
-            res = self.predict((last_commands[-1],), top_n)
-            if res:
-                return res
+            context = (last_commands[-1],)
+            if context in self.transitions:
+                return self.predict(context, top_n)
+                
         # Fallback to global top commands
         return self.top_global_commands(top_n)

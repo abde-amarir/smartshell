@@ -124,7 +124,7 @@ smartshell/
 - [x] Phase 2 — Data processing pipeline and normalization
 - [x] Phase 3 — Markov Chain model (baseline)
 - [X] Phase 4 — CLI suggestion engine with `prompt_toolkit`
-- [ ] Phase 5 — scikit-learn classifier (Logistic Regression + Random Forest)
+- [x] Phase 5 — scikit-learn classifier (Logistic Regression + Random Forest)
 - [ ] Phase 6 — LSTM sequence model with PyTorch
 - [ ] Phase 7 — Shell integration via `PROMPT_COMMAND`
 - [ ] Phase 8 — Packaging, systemd service, Docker (optional)

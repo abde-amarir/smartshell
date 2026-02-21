@@ -30,9 +30,15 @@ class SklearnPredictor:
         - target       : next command to predict
     """
 
-    FEATURE_COLS = ["prev_1", "prev_2", "prev_3", "hour", "day_of_week", "directory"]
+    FEATURE_COLS = ["prev_1", "prev_2", "prev_3", 
+                    "hour", "day_of_week",
+                    "directory",
+                    "prev_exit_code",
+                    "position",
+                    "session_length",
+]
     CATEGORICAL  = ["prev_1", "prev_2", "prev_3", "directory"]
-    NUMERIC      = ["hour", "day_of_week"]
+    NUMERIC      = ["hour", "day_of_week", "prev_exit_code", "position", "session_length"]
 
     def __init__(self, model_type: str = "logreg"):
         """
@@ -157,7 +163,7 @@ class SklearnPredictor:
     # ── Prediction ────────────────────────────────────────────────────────────
 
     def predict(self, last_commands: list[str], hour: int, day_of_week: int,
-                directory: str, top_n: int = 3) -> list[dict]:
+                directory: str, last_exit_code, position, session_length, top_n: int = 3,) -> list[dict]:
         """
         Predict the next command given context features.
 
@@ -186,6 +192,9 @@ class SklearnPredictor:
             "hour":        hour,
             "day_of_week": day_of_week,
             "directory":   directory,
+            "prev_exit_code": last_exit_code,
+            "position": position,
+            "session_length": session_length,
         }])
 
         proba = self.pipeline.predict_proba(X)[0]

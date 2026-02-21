@@ -15,7 +15,7 @@ def load_raw(db_path: Path = DB_PATH) -> pd.DataFrame:
     df = pd.read_sql_query("""
         SELECT id, command, directory, exit_code, timestamp, hour, day_of_week, session_id
         FROM commands
-        ORDER BY id ASC         
+        ORDER BY id ASC  
     """, conn)
     conn.close()
     return df
@@ -70,6 +70,10 @@ def build_sequence_pairs(df: pd.DataFrame, sequence_length: int = SEQUENCE_LENGT
                 "directory": target_row["directory_norm"],
                 "session_id": session_id,
             }
+
+            record["prev_exit_code"] = group.iloc[i-1]["exit_code"]
+            record["position"] = i / len(group)
+            record["session_length"] = len(group)
 
             # Add previous commands as prev_1, prev_2, prev_3
             # prev_1 is the most recent, prev_N is the oldest
